@@ -1,4 +1,5 @@
 import { useState, useRef, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 
 import AuthContext from "../../Store/AuthContext";
 import classes from "./AuthForm.module.css";
@@ -8,6 +9,7 @@ const AuthForm = () => {
   const passwordInputRef = useRef();
   const confirmPasswordInputRef = useRef();
   const authCtx = useContext(AuthContext);
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
@@ -22,32 +24,31 @@ const AuthForm = () => {
 
     const enteredEmail = emailInputRef.current.value;
     const enteredPassword = passwordInputRef.current.value;
-    const enteredPassword2 = confirmPasswordInputRef.current.value;
 
-    if (
-      enteredEmail &&
-      enteredPassword &&
-      enteredPassword2 &&
-      enteredPassword === enteredPassword2
-    ) {
-      setIsFormValid(true);
-    } else {
-      if (enteredPassword !== enteredPassword2) {
+    if (!isLogin) {
+      const enteredPassword2 = confirmPasswordInputRef.current.value;
+      if (
+        enteredEmail &&
+        enteredPassword &&
+        enteredPassword2 &&
+        enteredPassword === enteredPassword2
+      ) {
+        setIsFormValid(true);
+      } else if (enteredPassword !== enteredPassword2) {
         setError("Passwords didn't match");
         console.log("Passwords didn't match");
       } else {
         setError("All Fields Are Required");
         console.log("All Fields Are Required");
       }
-      return;
     }
 
     setIsLoading(true);
     let URL;
-    if (isLogin && isFormValid) {
+    if (isLogin) {
       URL =
         "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDZkztg3rItEhilSNN_uSr_AlJP2-i27n8";
-    } else {
+    } else if (isFormValid) {
       URL =
         "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDZkztg3rItEhilSNN_uSr_AlJP2-i27n8";
     }
@@ -76,6 +77,7 @@ const AuthForm = () => {
       })
       .then((data) => {
         authCtx.login(data.idToken);
+        navigate("/");
       })
       .catch((err) => {
         alert(err.message);
